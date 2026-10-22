@@ -181,7 +181,9 @@ class ReportController extends ApiBaseController
 
         [$startDate, $endDate] = $this->getMonthDateRange($request, $company);
 
-        $query = Order::where('order_type', 'sales')
+        // Include both sales invoices and sales-returns (credit notes) so the
+        // monthly GST report / auditor download reflects net output tax.
+        $query = Order::whereIn('order_type', ['sales', 'sales-returns'])
             ->where('orders.warehouse_id', $warehouse->id)
             ->with([
                 'user:id,name,phone',
@@ -196,7 +198,12 @@ class ReportController extends ApiBaseController
         $orders = $query->get();
 
         $results = $orders->map(function ($order) use ($company) {
-            $halfTax = round($order->tax_amount / 2, 2);
+            // Credit notes (sales-returns) reduce output tax, so their values
+            // are shown as negatives and net against the sales totals.
+            $isCreditNote = $order->order_type === 'sales-returns';
+            $sign = $isCreditNote ? -1 : 1;
+
+            $halfTax = round($order->tax_amount / 2, 2) * $sign;
 
             $paymentModes = $order->orderPayments
                 ->map(fn($op) => optional(optional($op->payment)->paymentMode)->name)
@@ -205,21 +212,22 @@ class ReportController extends ApiBaseController
                 ->implode(', ');
 
             return [
+                'document_type'   => $isCreditNote ? 'Credit Note' : 'Invoice',
                 'order_date'      => $order->order_date->setTimezone($company->timezone)->format('d/m/Y'),
                 'invoice_number'  => $order->invoice_number,
                 'customer_name'   => $order->user ? $order->user->name : '-',
                 'customer_phone'  => $order->user ? $order->user->phone : '-',
-                'total_quantity'  => (float) $order->total_quantity,
-                'taxable_value'   => round($order->subtotal, 2),
+                'total_quantity'  => (float) $order->total_quantity * $sign,
+                'taxable_value'   => round($order->subtotal, 2) * $sign,
                 'cgst_amount'     => $halfTax,
                 'sgst_amount'     => $halfTax,
-                'total_tax'       => round($order->tax_amount, 2),
-                'discount'        => round($order->discount, 2),
-                'shipping'        => round($order->shipping, 2),
-                'total'           => round($order->total, 2),
+                'total_tax'       => round($order->tax_amount, 2) * $sign,
+                'discount'        => round($order->discount, 2) * $sign,
+                'shipping'        => round($order->shipping, 2) * $sign,
+                'total'           => round($order->total, 2) * $sign,
                 'payment_mode'    => $paymentModes ?: '-',
                 'payment_status'  => $order->payment_status,
-                'due_amount'      => round($order->due_amount, 2),
+                'due_amount'      => round($order->due_amount, 2) * $sign,
             ];
         });
 
