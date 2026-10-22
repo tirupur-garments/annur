@@ -50,7 +50,7 @@
     <admin-page-table-content>
         <a-spin :spinning="loading">
             <div v-if="results.length === 0 && !loading" style="padding: 40px; text-align: center;">
-                <a-empty :description="monthYear ? 'No sales invoices found for this month' : 'Please select a month'" />
+                <a-empty :description="monthYear ? 'No sales invoices or credit notes found for this month' : 'Please select a month'" />
             </div>
 
             <div v-else class="table-responsive">
@@ -65,23 +65,28 @@
                     :scroll="{ x: 1400 }"
                 >
                     <template #bodyCell="{ column, record }">
+                        <template v-if="column.dataIndex === 'document_type'">
+                            <a-tag :color="record.document_type === 'Credit Note' ? 'volcano' : 'blue'">
+                                {{ record.document_type }}
+                            </a-tag>
+                        </template>
                         <template v-if="column.dataIndex === 'taxable_value'">
                             {{ formatAmountCurrency(record.taxable_value) }}
                         </template>
                         <template v-if="column.dataIndex === 'cgst_amount'">
-                            {{ record.cgst_amount > 0 ? formatAmountCurrency(record.cgst_amount) : '—' }}
+                            {{ record.cgst_amount !== 0 ? formatAmountCurrency(record.cgst_amount) : '—' }}
                         </template>
                         <template v-if="column.dataIndex === 'sgst_amount'">
-                            {{ record.sgst_amount > 0 ? formatAmountCurrency(record.sgst_amount) : '—' }}
+                            {{ record.sgst_amount !== 0 ? formatAmountCurrency(record.sgst_amount) : '—' }}
                         </template>
                         <template v-if="column.dataIndex === 'total_tax'">
                             <strong>{{ formatAmountCurrency(record.total_tax) }}</strong>
                         </template>
                         <template v-if="column.dataIndex === 'discount'">
-                            {{ record.discount > 0 ? formatAmountCurrency(record.discount) : '—' }}
+                            {{ record.discount !== 0 ? formatAmountCurrency(record.discount) : '—' }}
                         </template>
                         <template v-if="column.dataIndex === 'shipping'">
-                            {{ record.shipping > 0 ? formatAmountCurrency(record.shipping) : '—' }}
+                            {{ record.shipping !== 0 ? formatAmountCurrency(record.shipping) : '—' }}
                         </template>
                         <template v-if="column.dataIndex === 'total'">
                             <strong>{{ formatAmountCurrency(record.total) }}</strong>
@@ -98,8 +103,8 @@
 
                     <template #summary>
                         <a-table-summary-row>
-                            <a-table-summary-cell :col-span="4">
-                                <a-typography-text strong>TOTAL ({{ results.length }} invoices)</a-typography-text>
+                            <a-table-summary-cell :col-span="5">
+                                <a-typography-text strong>NET TOTAL ({{ results.length }} documents)</a-typography-text>
                             </a-table-summary-cell>
                             <a-table-summary-cell align="right">
                                 <a-typography-text strong>{{ totals.total_quantity }} pcs</a-typography-text>
@@ -168,6 +173,7 @@ export default {
         const columns = [
             { title: '#', dataIndex: 'index', width: 50, customRender: ({ index }) => index + 1 },
             { title: 'Date', dataIndex: 'order_date', width: 105 },
+            { title: 'Type', dataIndex: 'document_type', width: 110, align: 'center' },
             { title: 'Invoice No', dataIndex: 'invoice_number', width: 130 },
             { title: 'Customer', dataIndex: 'customer_name', width: 160 },
             { title: 'Qty', dataIndex: 'total_quantity', width: 70, align: 'right' },

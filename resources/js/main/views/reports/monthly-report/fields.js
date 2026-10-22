@@ -5,6 +5,7 @@ const fields = () => {
 
     const columns = [
         { title: 'Date', dataIndex: 'order_date', dbKey: 'order_date' },
+        { title: 'Type', dataIndex: 'document_type', dbKey: 'document_type' },
         { title: 'Invoice No', dataIndex: 'invoice_number', dbKey: 'invoice_number' },
         { title: 'Customer', dataIndex: 'customer_name', dbKey: 'customer_name' },
         { title: 'Phone', dataIndex: 'customer_phone', dbKey: 'customer_phone' },
