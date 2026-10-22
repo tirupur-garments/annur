@@ -268,7 +268,7 @@
                 <div style="text-align: center; margin-top: 12px; padding: 8px 0; border-top: 1px dashed #ccc;">
                     <p style="font-size: 12px; margin-bottom: 4px; font-weight: 600;">Scan &amp; Pay via UPI</p>
                     <canvas ref="upiCanvas" class="upi-qr-canvas" style="display:block; margin: 0 auto;"></canvas>
-                    <p style="font-size: 11px; margin-top: 4px; color: #555;">q069778669@ybl</p>
+                    <p style="font-size: 11px; margin-top: 4px; color: #555;">paytm.s2fpdnq@pty</p>
                     <p style="font-size: 10px; color: #888;">GPay &middot; PhonePe &middot; Paytm &middot; BHIM</p>
                 </div>
 
@@ -319,7 +319,7 @@ export default defineComponent({
             const amount = props.order?.total
                 ? parseFloat(props.order.total).toFixed(2)
                 : "0.00";
-            return `upi://pay?pa=q069778669@ybl&am=${amount}`;
+            return `upi://pay?pa=paytm.s2fpdnq@pty&am=${amount}`;
         });
 
         // Render the QR locally onto the canvas with crisp, integer-scaled modules.
